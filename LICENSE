@@ -1,0 +1,70 @@
+                   GNU LESSER GENERAL PUBLIC LICENSE
+                       Version 3, 29 June 2007
+
+ Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.org/>
+ Everyone is permitted to copy and distribute verbatim copies
+ of this license document, but changing it is not allowed.
+
+
+  This version of the GNU Lesser General Public License incorporates
+the terms and conditions of version 3 of the GNU General Public
+License, supplemented by the additional permissions listed below.
+
+  0. Additional Definitions.
+
+  As used herein, "this License" refers to version 3 of the GNU Lesser
+General Public License, and the "GNU GPL" refers to version 3 of the GNU
+General Public License.
+
+  "The Library" refers to a covered work governed by this License,
+other than an Application or a Combined Work as defined below.
+
+  An "Application" is any work that makes use of an interface provided
+by the Library, but which is not otherwise based on the Library.
+Defining a subclass of a class defined by the Library is deemed a mode
+of using an interface provided by the Library.
+
+  A "Combined Work" is a work produced by combining or linking an
+Application with the Library.  The particular version of the Library
+with which the Combined Work was made is also called the "Linked
+Version".
+
+  The "Minimal Corresponding Source" for a Combined Work means the
+Corresponding Source for the Combined Work, excluding any source code
+for portions of the Combined Work that, considering the Combined Work
+as a whole, are merely Application source code and not part of the
+Library.
+
+  The "Corresponding Application Code" for a Combined Work means the
+object code and/or source code for the Application, including any data
+and its feeds, but excluding the System Libraries of the Combined Work.
+
+  1. Exception to Section 3 of the GNU GPL.
+
+  You may convey a covered work under the terms of sections 1 and 2
+of this License without being bound by section 3 of the GNU GPL.
+
+  2. Conveying Verbatim Copies.
+
+  You may convey verbatim copies of the Library's source code as you
+receive it, in any medium, provided that you conspicuously and
+appropriately publish on each copy an appropriate copyright notice and
+disclaimer of warranty; keep intact all notices stating that this
+License and any non-warranty terms added in accord with section 7
+apply to the code; keep intact all notices of the absence of any
+warranty; and give all recipients a copy of this License along with
+the Library.
+
+  You may charge any price or no price for each copy, and you may
+offer support or warranty protection for a fee.
+
+  3. Conveying Modified Versions.
+
+  If you modify a copy of the Library, and, in your facilities,
+the modified version is used to make object code for any Application,
+you may convey modified object code under the terms of section 4,
+provided that the terms permit installation of modified versions of
+the Combined Work in the same manner that the installed Linked Version
+was installed, and you comply with the terms of section 6 of the GNU GPL.
+
+  See https://www.gnu.org/licenses/lgpl-3.0.txt for the full license text.

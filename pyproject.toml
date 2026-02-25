@@ -1,0 +1,54 @@
+[project]
+name = "mwave"
+version = "0.1.0"
+description = "An MLX-based differentiable acoustic simulator for Apple Silicon — ported from j-Wave"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "LGPL-3.0-only"}
+authors = [
+    {name = "Callum Rhys Tilbury"},
+]
+keywords = [
+    "mlx",
+    "apple-silicon",
+    "acoustics",
+    "simulation",
+    "ultrasound",
+    "differentiable-programming",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Operating System :: MacOS",
+]
+dependencies = [
+    "mlxdf",
+    "mlx>=0.4.0",
+    "plum-dispatch>=2.5.2",
+    "numpy",
+    "matplotlib",
+    "Pillow",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+]
+
+[project.urls]
+Repository = "https://github.com/callumtilbury/mwave"
+"Bug Tracker" = "https://github.com/callumtilbury/mwave/issues"
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["mwave*"]
