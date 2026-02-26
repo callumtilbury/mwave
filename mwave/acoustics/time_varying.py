@@ -349,6 +349,8 @@ def _make_compiled_step(domain, medium, dt, pml_u_params, pml_rho_params,
         c0_arr = mx.array(medium.sound_speed)
 
     c0_sq = c0_arr ** 2
+    # For source scaling in step_with_source we need c0 (not c0^2)
+    c0_sq_for_src = c0_arr
 
     # Same for density
     if isinstance(medium.density, Field):
@@ -398,7 +400,29 @@ def _make_compiled_step(domain, medium, dt, pml_u_params, pml_rho_params,
 
         return u_params, rho_params, p_params
 
-    return mx.compile(step)
+    # Source-aware variant: mass_src is (Nx, Ny, 1) at a single time step.
+    # Scale factor mirrors mass_conservation_rhs: 2 / (ndim * dx)
+    _scale = mx.array(
+        (2.0 / (domain.ndim * np.asarray(domain.dx))).astype(np.float32)
+    )  # shape (ndim,)
+
+    def step_with_source(u_params, rho_params, p_params, mass_src):
+        dp = _spectral_grad(p_params[..., 0], shift_k_fwd)
+        du = -dp / rho0_arr
+        u_params = pml_u_params * (pml_u_params * u_params + dt * du)
+
+        div_u = _spectral_div(u_params, shift_k_bwd)
+        # mass_src: (Nx, Ny, 1); _scale: (ndim,) → broadcasts to (Nx, Ny, ndim)
+        src_contribution = _scale * mass_src / c0_sq_for_src
+        drho = -div_u * rho0_arr + src_contribution
+        rho_params = pml_rho_params * (pml_rho_params * rho_params + dt * drho)
+
+        rho_sum = mx.sum(rho_params, axis=-1, keepdims=True)
+        p_params = c0_sq * rho_sum
+
+        return u_params, rho_params, p_params
+
+    return mx.compile(step), mx.compile(step_with_source)
 
 
 @operator(init_params=fourier_wave_prop_params)
@@ -453,42 +477,34 @@ def simulate_wave_propagation(
     p, u = p0, u0
     recordings = []
 
-    # Use compiled step when there are no sources (the common hot path)
-    use_compiled = (sources is None)
+    compiled_step, compiled_step_with_source = _make_compiled_step(
+        p.domain, medium, dt,
+        pml_u.params, pml_rho.params,
+        params["fourier"]["k_vec"], params["fourier"]["k_space_op"],
+    )
 
-    if use_compiled:
+    u_p, rho_p, p_p = u.params, rho.params, p.params
+
+    if sources is None:
         logger.debug("Starting simulation using COMPILED FourierSeries code")
-        compiled_step = _make_compiled_step(
-            p.domain, medium, dt,
-            pml_u.params, pml_rho.params,
-            params["fourier"]["k_vec"], params["fourier"]["k_space_op"],
-        )
-
-        u_p, rho_p, p_p = u.params, rho.params, p.params
-
         for n in range(Nt):
             u_p, rho_p, p_p = compiled_step(u_p, rho_p, p_p)
-            # Record: wrap back into Field for sensor callback
             p_field = p.replace_params(p_p)
             u_field = u.replace_params(u_p)
             rho_field = rho.replace_params(rho_p)
             recordings.append(sensors(p_field, u_field, rho_field))
     else:
-        logger.debug("Starting simulation using FourierSeries code (with sources)")
+        logger.debug("Starting simulation using COMPILED FourierSeries code (with sources)")
+        # Pre-bake all source grids upfront so on_grid() is never called
+        # inside the loop — keeps the hot path inside mx.compile.
+        source_grid = sources.to_grid_array(Nt)  # (Nt, Nx, Ny, 1)
+        mx.eval(source_grid)
         for n in range(Nt):
-            mass_src = sources.on_grid(n)
-
-            du = momentum_conservation_rhs(p, u, medium, c_ref=c_ref, dt=dt,
-                                            params=params["fourier"])
-            u = pml_u * (pml_u * u + dt * du)
-
-            drho = mass_conservation_rhs(p, u, mass_src, medium,
-                                          c_ref=c_ref, dt=dt,
-                                          params=params["fourier"])
-            rho = pml_rho * (pml_rho * rho + dt * drho)
-
-            p = pressure_from_density(rho, medium)
-            recordings.append(sensors(p, u, rho))
+            u_p, rho_p, p_p = compiled_step_with_source(u_p, rho_p, p_p, source_grid[n])
+            p_field = p.replace_params(p_p)
+            u_field = u.replace_params(u_p)
+            rho_field = rho.replace_params(rho_p)
+            recordings.append(sensors(p_field, u_field, rho_field))
 
     if len(recordings) > 0 and isinstance(recordings[0], Field):
         stacked = mx.stack([r.params for r in recordings])

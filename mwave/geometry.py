@@ -163,6 +163,12 @@ class Sources:
 
         return mx.array(np.expand_dims(src, -1).astype(np.float32))
 
+    def to_grid_array(self, Nt: int) -> "mx.array":
+        """Pre-bake all Nt source grids into a single mx.array of shape
+        (Nt, Nx, Ny, 1) so the time loop can stay inside mx.compile."""
+        grids = [self.on_grid(n) for n in range(Nt)]
+        return mx.stack(grids)  # (Nt, Nx, Ny, 1)
+
     @staticmethod
     def no_sources(domain):
         return Sources(positions=([], []), signals=[], dt=1.0, domain=domain)
@@ -338,11 +344,18 @@ class TimeAxis:
 
     @staticmethod
     def from_medium(medium: Medium, cfl: float = 0.3, t_end=None):
-        dt = cfl * min(medium.domain.dx) / functional(medium.sound_speed)(
-            np.max)
+        # Use mx-aware reduce so this works whether sound_speed is a scalar
+        # float or a FourierSeries backed by an mx.array.
+        def _max(x):
+            return float(mx.max(mx.array(x)))
+
+        def _min(x):
+            return float(mx.min(mx.array(x)))
+
+        dt = cfl * min(medium.domain.dx) / functional(medium.sound_speed)(_max)
         if t_end is None:
             t_end = np.sqrt(
                 sum((float(x[-1]) - float(x[0]))**2
                     for x in medium.domain.spatial_axis)) / functional(
-                        medium.sound_speed)(np.min)
+                        medium.sound_speed)(_min)
         return TimeAxis(dt=float(dt), t_end=float(t_end))
