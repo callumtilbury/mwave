@@ -2,7 +2,7 @@
 
 **mwave** is an MLX-based differentiable acoustic simulator for Apple Silicon, ported from [j-Wave](https://github.com/ucl-bug/jwave). It provides the same high-level API as j-Wave with near-identical call signatures, making it a near drop-in replacement for users on Mac with an Apple GPU.
 
-Under the hood, mwave replaces JAX → [Apple MLX](https://github.com/ml-explore/mlx) and `jaxdf` → [mlxdf](https://github.com/your-org/mlxdf), enabling GPU-accelerated acoustic simulations on M-series chips.
+Under the hood, mwave replaces JAX → [Apple MLX](https://github.com/ml-explore/mlx) and `jaxdf` → [mlxdf](https://github.com/callumtilbury/mlxdf), enabling GPU-accelerated acoustic simulations on M-series chips.
 
 ---
 
@@ -26,7 +26,7 @@ pip install mwave
 Or install from source:
 
 ```bash
-git clone https://github.com/your-org/mwave
+git clone https://github.com/callumtilbury/mwave
 cd mwave
 pip install -e .
 ```
